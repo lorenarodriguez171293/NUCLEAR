@@ -1,321 +1,277 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Simulador de Energía Nuclear</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulador de Energía Nuclear por Fisión</title>
+
 <style>
-  :root {
-    --bg: #071428;
-    --card: #0f2740;
-    --accent: #ffb300;
-    --muted: #9fb0c3;
-    --glass: rgba(255,255,255,0.03);
-  }
-  body {
-    margin:0;
-    font-family: Inter, Arial, sans-serif;
-    background: radial-gradient(circle at 10% 10%, #081426 0%, #03101a 60%);
-    color: #dfeffb;
-  }
-  header {
-    background: linear-gradient(90deg,#05293b,#063049);
-    padding:18px;
-    text-align:center;
-    border-bottom:1px solid rgba(255,255,255,0.03);
-  }
-  header h1 { margin:0; color:var(--accent); letter-spacing:0.5px; }
-  header p { margin:6px 0 0 0; color:var(--muted); font-size:14px; }
+/* ---------------------- ESTILO GENERAL ---------------------- */
+body {
+  margin:0;
+  background:#0a0f1c;
+  font-family:Arial, sans-serif;
+  color:#e8f1ff;
+}
+header {
+  text-align:center;
+  padding:20px;
+  background:#111d33;
+  border-bottom:1px solid #1e2f4a;
+}
+h1 { color:#ffdd66; margin:0; }
+.container {
+  max-width:1200px;
+  margin:20px auto;
+  padding:10px;
+}
+.card {
+  background:#132038;
+  border:1px solid #1e3a56;
+  border-radius:10px;
+  padding:16px;
+  box-shadow:0px 0px 10px rgba(0,0,0,0.5);
+  margin-bottom:20px;
+}
+h2 { color:#ffdd88; margin-top:0; }
 
-  .container { max-width:1100px; margin:22px auto; padding:14px; }
-  .grid { display:grid; grid-template-columns: 1fr 420px; gap:18px; align-items:start; }
+/* ---------------------- ANIMACIÓN FISIÓN ---------------------- */
+.fision-container {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:260px;
+}
 
-  .card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:12px;
-    padding:16px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,255,255,0.03);
-  }
+.atom {
+  position:relative;
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  background:radial-gradient(circle,#88c0ff,#2352a8);
+  box-shadow:0 0 30px rgba(80,180,255,0.5);
+  animation:pulse 2.2s infinite;
+}
 
-  h2 { color: #ffd780; margin:6px 0 12px 0; }
-  label { display:block; color:var(--muted); margin-top:10px; font-weight:600; }
-  input[type="range"], select, input[type="number"] { width:100%; margin-top:6px; }
-  .small { color:var(--muted); font-size:13px; margin-top:6px; }
+@keyframes pulse {
+  0% { transform:scale(1); }
+  50% { transform:scale(1.06); }
+  100% { transform:scale(1); }
+}
 
-  /* ANIMACIÓN FUSIÓN (PLASMA) */
-  .fusion-wrap { display:flex; justify-content:center; align-items:center; height:260px; }
-  .fusion {
-    width:220px; height:220px; border-radius:50%;
-    background: radial-gradient(circle at 35% 30%, rgba(255,220,120,0.95) 0%, rgba(255,140,60,0.9) 12%, rgba(255,80,140,0.6) 30%, rgba(50,20,120,0.25) 70%, rgba(0,0,0,0.1) 100%);
-    box-shadow: 0 0 80px rgba(255,160,60,0.18), inset 0 0 30px rgba(255,255,255,0.06);
-    position:relative;
-    overflow:hidden;
-    border: 1px solid rgba(255,200,120,0.06);
-  }
-  /* moving particles */
-  .particle {
-    position:absolute;
-    width:8px; height:8px;
-    background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(255,200,80,0.9));
-    border-radius:50%;
-    opacity:0.95;
-    mix-blend-mode: screen;
-    animation: move 6s linear infinite;
-  }
-  .particle.p2 { width:6px; height:6px; animation-duration:4.2s; }
-  .particle.p3 { width:5px; height:5px; animation-duration:7.8s; }
-  @keyframes move {
-    0% { transform: translate(0,0) scale(1); opacity:0.9; }
-    25% { transform: translate(40px,-30px) scale(1.2); opacity:1; }
-    50% { transform: translate(-10px,20px) scale(0.9); opacity:0.8; }
-    75% { transform: translate(-40px,-20px) scale(1.1); opacity:1; }
-    100% { transform: translate(0,0) scale(1); opacity:0.9; }
-  }
+/* neutrones */
+.neutron {
+  position:absolute;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#ffffff;
+  box-shadow:0 0 10px #9cf;
+  animation:neutronMove 2.3s linear infinite;
+}
 
-  /* RESULTS */
-  .metrics { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
-  .metric { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.02); text-align:center; }
-  .metric h3 { margin:0; color:#fff; font-size:13px; }
-  .metric p { margin:8px 0 0 0; font-size:18px; font-weight:700; color:#fff; }
+@keyframes neutronMove {
+  0% { transform:translate(-120px,0); opacity:0.1; }
+  40% { opacity:1; }
+  100% { transform:translate(0,0); opacity:1; }
+}
 
-  /* CHART */
-  .chart { display:flex; gap:8px; align-items:flex-end; height:220px; padding:12px; margin-top:10px; }
-  .bar { width:34px; background: linear-gradient(180deg,#ffcf66,#ff8a3d); border-radius:6px 6px 2px 2px; display:flex; align-items:flex-end; justify-content:center; color:#001; font-weight:700; padding-bottom:4px; box-shadow: 0 6px 14px rgba(0,0,0,0.4); }
-  .bar-labels { display:flex; gap:8px; justify-content:center; margin-top:8px; color:var(--muted); font-size:12px; }
-  .controls-row { display:flex; gap:12px; align-items:center; margin-top:10px; flex-wrap:wrap; }
-  .small-note { font-size:12px; color:var(--muted); margin-top:6px; }
+/* fragmentos de fisión */
+.fragment {
+  position:absolute;
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  background:#ffcc66;
+  opacity:0;
+  animation:fragments 2.3s linear infinite;
+}
 
-  @media (max-width:980px){
-    .grid { grid-template-columns: 1fr; }
-    .fusion-wrap { height:200px; }
-  }
+@keyframes fragments {
+  0% { opacity:0; transform:translate(0,0) scale(0.3); }
+  30% { opacity:0; }
+  45% { opacity:1; }
+  100% { transform:translate(140px, -40px) scale(1); opacity:1; }
+}
+
+.fragment2 {
+  animation:fragments2 2.3s linear infinite;
+}
+@keyframes fragments2 {
+  0% { opacity:0; transform:translate(0,0) scale(0.3); }
+  30% { opacity:0; }
+  45% { opacity:1; }
+  100% { transform:translate(-140px, 40px) scale(1); opacity:1; }
+}
+
+/* ---------------------- CONTROLES ---------------------- */
+label { font-weight:bold; display:block; margin-top:10px; }
+input[type="range"], select {
+  width:100%;
+}
+
+/* ---------------------- MÉTRICAS ---------------------- */
+.metrics {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+.metric {
+  background:#1b2f4d;
+  padding:12px;
+  border-radius:8px;
+  text-align:center;
+}
+.metric h3 { margin:0; color:#ffe39e; }
+.metric p { margin:8px 0 0 0; font-size:18px; font-weight:bold; }
+
+/* ---------------------- GRAFICO ---------------------- */
+.chart {
+  height:220px;
+  display:flex;
+  align-items:flex-end;
+  gap:6px;
+  margin-top:15px;
+}
+.bar {
+  width:28px;
+  background:linear-gradient(180deg,#ffdd66,#ff9933);
+  border-radius:6px 6px 2px 2px;
+  text-align:center;
+  padding-bottom:4px;
+  font-size:10px;
+  font-weight:bold;
+  color:#222;
+}
+.labels {
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  margin-top:8px;
+  font-size:12px;
+  color:#aac3e0;
+}
 </style>
 </head>
+
 <body>
 
 <header>
-  <h1>Simulador de Energía Nuclear (Educativo)</h1>
-  <p>Animación de plasma de fusión (visual) — estimaciones de producción y CO₂ evitado</p>
+  <h1>Simulador de Energía Nuclear por Fisión</h1>
+  <p>Animación, potencia y estimaciones completas</p>
 </header>
 
 <div class="container">
-  <div class="grid">
 
-    <!-- IZQ: ANIMACIÓN + CONTROLES -->
-    <div class="card">
-      <h2>Animación de fusión nuclear (visual)</h2>
-      <div class="fusion-wrap" aria-hidden="false">
-        <div class="fusion" id="fusion">
-          <!-- partículas: posición inicial aleatoria con JS -->
-          <div class="particle p1" id="p1" style="left:20%; top:30%;"></div>
-          <div class="particle p2" id="p2" style="left:65%; top:20%;"></div>
-          <div class="particle p3" id="p3" style="left:40%; top:70%;"></div>
-          <div class="particle p1" id="p4" style="left:75%; top:60%;"></div>
-          <div class="particle p2" id="p5" style="left:30%; top:50%;"></div>
-        </div>
-      </div>
+  <!-- ------------------------ ANIMACIÓN ------------------------ -->
+  <div class="card">
+    <h2>Animación del proceso de fisión nuclear (U-235)</h2>
+    <div class="fision-container">
 
-      <label for="power">Potencia eléctrica nominal por reactor (MW)</label>
-      <input type="range" id="power" min="50" max="1600" value="1000" step="10" oninput="actualizar()">
-      <div class="small">Valor: <span id="powerVal">1000</span> MW</div>
+      <div class="atom" id="atom">
+        <div class="neutron" style="top:80px; left:-10px;"></div>
 
-      <label for="nreact">Cantidad de reactores</label>
-      <select id="nreact" onchange="actualizar()">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="4">4</option>
-        <option value="6">6</option>
-      </select>
-
-      <label for="capfac">Factor de capacidad (%)</label>
-      <input type="range" id="capfac" min="30" max="100" value="90" step="1" oninput="actualizar()">
-      <div class="small">Factor de capacidad: <span id="capVal">90</span> %</div>
-
-      <label for="eff">Eficiencia del ciclo (si aplica) (%)</label>
-      <input type="number" id="eff" min="20" max="100" value="95" oninput="actualizar()">
-      <div class="small-note">Normalmente la potencia indicada ya es eléctrica; la eficiencia sirve si modelás potencia térmica → eléctrica.</div>
-
-    </div>
-
-    <!-- DER: RESULTADOS + GRAFICO -->
-    <div class="card">
-      <h2>Resultados</h2>
-
-      <div class="metrics">
-        <div class="metric">
-          <h3>Potencia instantánea</h3>
-          <p id="potencia">0 kW</p>
-        </div>
-
-        <div class="metric">
-          <h3>Producción diaria</h3>
-          <p id="diaria">0 kWh</p>
-        </div>
-
-        <div class="metric">
-          <h3>Producción mensual</h3>
-          <p id="mensual">0 kWh</p>
-        </div>
-
-        <div class="metric">
-          <h3>Producción anual</h3>
-          <p id="anual">0 kWh</p>
-        </div>
-
-        <div class="metric">
-          <h3>CO₂ evitado</h3>
-          <p id="co2">0 tCO₂/año</p>
-        </div>
-
-        <div class="metric">
-          <h3>Potencia total instalada</h3>
-          <p id="pinst">0 MW</p>
-        </div>
-      </div>
-
-      <h3 style="margin-top:12px;">Producción estimada por mes</h3>
-      <div id="chart" class="chart" role="img" aria-label="Producción mensual (barras)"></div>
-      <div class="bar-labels">
-        <div>E</div><div>F</div><div>M</div><div>A</div><div>M</div><div>J</div><div>J</div><div>A</div><div>S</div><div>O</div><div>N</div><div>D</div>
+        <!-- fragmentos -->
+        <div class="fragment"></div>
+        <div class="fragment2"></div>
       </div>
 
     </div>
+
+    <!-- ------------------------ CONTROLES ------------------------ -->
+    <label>Potencia nominal por reactor (MW)</label>
+    <input type="range" id="potenciaMW" min="50" max="1600" value="700" oninput="actualizar()">
+    <span id="potMWVal">700 MW</span>
+
+    <label>Cantidad de reactores</label>
+    <select id="reactores" onchange="actualizar()">
+      <option>1</option>
+      <option>2</option>
+      <option>3</option>
+      <option>4</option>
+    </select>
+
+    <label>Factor de capacidad (%)</label>
+    <input type="range" id="capacidad" min="40" max="100" value="90" oninput="actualizar()">
+    <span id="capVal">90%</span>
 
   </div>
 
-  <footer style="text-align:center; color:var(--muted); margin-top:18px; font-size:13px;">
-    Supuestos: potencia nominal = eléctrica (si indicás térmica, multiplicá por eficiencia). Factor de emisiones usado: 0.45 kgCO₂ / kWh. Este simulador es educativo.
-  </footer>
+  <!-- ------------------------ RESULTADOS ------------------------ -->
+  <div class="card">
+    <h2>Resultados</h2>
+
+    <div class="metrics">
+      <div class="metric"><h3>Potencia instantánea</h3><p id="potInst">0 kW</p></div>
+      <div class="metric"><h3>Producción diaria</h3><p id="prodDia">0 kWh</p></div>
+      <div class="metric"><h3>Mensual</h3><p id="prodMes">0 kWh</p></div>
+      <div class="metric"><h3>Anual</h3><p id="prodAnio">0 kWh</p></div>
+      <div class="metric"><h3>CO₂ evitado</h3><p id="co2">0 t/año</p></div>
+      <div class="metric"><h3>Potencia instalada</h3><p id="pinst">0 MW</p></div>
+    </div>
+
+    <h3 style="margin-top:20px;">Gráfico mensual estimado</h3>
+    <div class="chart" id="chart"></div>
+
+    <div class="labels">
+      <span>E</span><span>F</span><span>M</span><span>A</span><span>M</span>
+      <span>J</span><span>J</span><span>A</span><span>S</span><span>O</span>
+      <span>N</span><span>D</span>
+    </div>
+  </div>
 
 </div>
 
 <script>
-/* Simulador nuclear (educativo) */
+function format(n){ return n.toLocaleString("es-AR"); }
 
-/* Parámetros de emisiones */
-const emisFactorKgPerKwh = 0.45; // kg CO2 per kWh -> convert to tons/year
+function actualizar(){
+  let MW = Number(document.getElementById("potenciaMW").value);
+  let nReact = Number(document.getElementById("reactores").value);
+  let cap = Number(document.getElementById("capacidad").value)/100;
 
-/* Elementos */
-const powerEl = document.getElementById('power');
-const powerVal = document.getElementById('powerVal');
-const nreactEl = document.getElementById('nreact');
-const capEl = document.getElementById('capfac');
-const capVal = document.getElementById('capVal');
-const effEl = document.getElementById('eff');
+  document.getElementById("potMWVal").innerText = MW+" MW";
+  document.getElementById("capVal").innerText = (cap*100).toFixed(0)+"%";
 
-const potenciaEl = document.getElementById('potencia');
-const diariaEl = document.getElementById('diaria');
-const mensualEl = document.getElementById('mensual');
-const anualEl = document.getElementById('anual');
-const co2El = document.getElementById('co2');
-const pinstEl = document.getElementById('pinst');
+  let potInst_kW = MW * nReact * 1000;
+  let diaria = potInst_kW * cap * 24;
+  let mensual = diaria * 30;
+  let anual = diaria * 365;
 
-const chart = document.getElementById('chart');
-const fusion = document.getElementById('fusion');
+  let co2_kg = anual * 0.45;
+  let co2_t = co2_kg / 1000;
 
-/* Partículas: movimiento aleatorio suave (para enriquecer animación) */
-const particles = Array.from(document.querySelectorAll('.particle'));
-function randomizeParticles() {
-  particles.forEach((p, i) => {
-    const left = 10 + Math.random()*80;
-    const top  = 10 + Math.random()*80;
-    p.style.left = left + '%';
-    p.style.top = top + '%';
-    p.style.animationDelay = (Math.random()*-6) + 's';
-    p.style.opacity = 0.6 + Math.random()*0.5;
-  });
+  document.getElementById("potInst").innerText = format(potInst_kW)+" kW";
+  document.getElementById("prodDia").innerText = format(diaria)+" kWh";
+  document.getElementById("prodMes").innerText = format(mensual)+" kWh";
+  document.getElementById("prodAnio").innerText = format(anual)+" kWh";
+  document.getElementById("co2").innerText = format(co2_t.toFixed(1))+" t/año";
+  document.getElementById("pinst").innerText = MW*nReact+" MW";
+
+  dibujarGrafico(mensual);
 }
 
-/* Cálculo y dibujo */
-function actualizar() {
-  // parámetros
-  const powerMW = Number(powerEl.value); // MW per reactor (assumed ELECTRIC)
-  const n = Number(nreactEl.value);
-  const capfac = Number(capEl.value)/100; // fraction
-  const eff = Math.max(0.01, Math.min(1, Number(effEl.value)/100)); // fraction (if user uses thermal→electric)
+function dibujarGrafico(base){
+  const fac = [1,1,1,1,1,1,1,1,1,1,1,1];
+  const chart = document.getElementById("chart");
+  chart.innerHTML = "";
 
-  // Si el usuario quieriera introducir potencia térmica y convertir a eléctrica:
-  // Aquí asumimos que 'powerMW' ingresado es eléctrica. Si fuese térmico, aplicar eff:
-  // const electricMW_per_reactor = powerMW * eff;
-  const electricMW_per_reactor = powerMW * eff; // dejo la conversión por si el usuario piensa en térmico
+  const max = base * 1.05;
 
-  // pot instantánea (kW) = rated_electric * n * 1000
-  const potInstKW = electricMW_per_reactor * n * 1000; // kW
+  for(let i=0;i<12;i++){
+    let val = base * fac[i];
+    let h = Math.max(10, (val/max)*200);
 
-  // producción promedio considerando factor de capacidad:
-  // diaria kWh = potInstKW * capfac * 24
-  const prodDiariaKwh = potInstKW * capfac * 24;
-  const prodMensualKwh = prodDiariaKwh * 30;
-  const prodAnualKwh = prodDiariaKwh * 365;
-
-  // emisiones evitadas
-  const co2KgAnual = prodAnualKwh * emisFactorKgPerKwh;
-  const co2TAnual = co2KgAnual / 1000;
-
-  // mostrar valores
-  powerVal.textContent = powerMW.toFixed(0);
-  capVal.textContent = Math.round(capfac*100);
-
-  potenciaEl.textContent = formatNumber(potInstKW.toFixed(0)) + ' kW';
-  diariaEl.textContent = formatNumber(prodDiariaKwh.toFixed(0)) + ' kWh';
-  mensualEl.textContent = formatNumber(prodMensualKwh.toFixed(0)) + ' kWh';
-  anualEl.textContent = formatNumber(prodAnualKwh.toFixed(0)) + ' kWh';
-  co2El.textContent = formatNumber(co2TAnual.toFixed(1)) + ' tCO₂/año';
-  pinstEl.textContent = formatNumber((electricMW_per_reactor*n).toFixed(1)) + ' MW';
-
-  // animación: más potencia/producción => partículas más rápidas / más glow
-  const intensity = Math.min(1.8, 0.5 + (electricMW_per_reactor*n)/1000);
-  fusion.style.boxShadow = `0 0 ${60*intensity}px rgba(255,160,60,${0.18*intensity}), inset 0 0 ${20*intensity}px rgba(255,255,255,0.06)`;
-
-  particles.forEach((p,i) => {
-    p.style.transform = `scale(${0.7 + 0.6*intensity})`;
-    p.style.opacity = 0.6 + 0.35*Math.random()*intensity;
-    p.style.animationDuration = (3 - Math.min(2.2, intensity)) + (Math.random()*3) + 's';
-  });
-
-  // dibujar gráfico mensual (aplico factores estacionales suaves: nuclear es estable)
-  const seasonFactors = [0.98,0.98,1.00,1.02,1.01,0.99,0.97,0.98,1.00,1.01,1.02,1.01];
-  drawChart(prodMensualKwh, seasonFactors);
-}
-
-/* Dibuja barras en #chart */
-function drawChart(baseMonthly, factors) {
-  chart.innerHTML = '';
-  const values = factors.map(f => baseMonthly * f);
-  const maxVal = Math.max(...values, 1);
-  for (let i=0;i<12;i++){
-    const val = values[i];
-    const h = Math.max(6, Math.round((val / maxVal) * 200)); // px
-    const bar = document.createElement('div');
-    bar.className = 'bar';
-    bar.style.height = h + 'px';
-    bar.title = Math.round(val).toLocaleString() + ' kWh';
-    // inner label (MWh)
-    const label = document.createElement('div');
-    label.style.fontSize = '11px';
-    label.style.color = '#011';
-    label.style.fontWeight = '700';
-    label.innerText = Math.round(val/1000);
-    bar.appendChild(label);
+    let bar = document.createElement("div");
+    bar.className = "bar";
+    bar.style.height = h+"px";
+    bar.innerText = Math.round(val/1000); // MWh aprox
     chart.appendChild(bar);
   }
 }
 
-function formatNumber(x){
-  return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
-/* eventos */
-powerEl.addEventListener('input', actualizar);
-nreactEl.addEventListener('change', actualizar);
-capEl.addEventListener('input', actualizar);
-effEl.addEventListener('input', actualizar);
-
-/* init */
-randomizeParticles();
 actualizar();
-
 </script>
+
 </body>
 </html>
